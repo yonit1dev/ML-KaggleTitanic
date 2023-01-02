@@ -7,4 +7,9 @@
   - Regression Models.
   - Clustering Models.
 
-If you have any comments, feel free to create an issue.
+### To run the examples:
+- Have python version 3.9 or up.
+- Have pip installed.
+- Install pandas, numpy and scikit-learn packages
+
+- If you have any comments, feel free to create an issue.
