@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pylab as plot
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 
 # Function that will be useful later
 
@@ -14,20 +13,9 @@ def calculate_median(median_frame, observation):
     return median_frame[selection]['Age'].values[0]
 
 
-# Reading the training data
-frame = pd.read_csv("./data/train.csv")
-
-# Check for the right amount of columns and rows
-print(frame.shape == (891, 12))
-
-# Manipulating data to be accomodated by model
-# Combining train and test data
-
-
 def combine_train_test(train_frame, test):
     test_data = pd.read_csv(test)
 
-    # class_target = train_frame.Survived
     train_frame.drop(columns="Survived", axis=1, inplace=True)
 
     combined_data = train_frame.append(test_data)
@@ -38,12 +26,17 @@ def combine_train_test(train_frame, test):
     return combined_data
 
 
+# Reading the training data
+frame = pd.read_csv("./data/train.csv")
+
+# Check for the right amount of columns and rows
+print(frame.shape == (891, 12))
+
+# Manipulating data to be accomodated by model
+# Combining train and test data
 data_set = combine_train_test(frame, "./data/test.csv")
-# print(data_set.shape)
-# print(data_set.head())
 
 # Manipulating each of the features to create a model-friendly data
-# Age has some values set as null
 
 # Extracting useful information from the title columns - indicates social status
 titles = {
@@ -70,14 +63,10 @@ data_set["Status"] = data_set["Name"].map(
     lambda name: name.split(",")[1].split(".")[0].strip())
 data_set["Status"] = data_set.Status.map(titles)
 
-# print(data_set.head())
-
 # Processing Age
 # Filling null values with their median values by sex and status category
 train_group = data_set.iloc[:891].groupby(['Status', 'Sex'])
 train_median = train_group.median().reset_index()[['Sex', 'Status', 'Age']]
-
-# print(train_median.head())
 
 # based on the above observation and computation, fill the age column with the median value if null
 data_set["Age"] = data_set.apply(lambda row: calculate_median(median_frame=train_median,
@@ -90,13 +79,41 @@ data_set["Sex"] = data_set["Sex"].map({'male': 0, 'female': 1})
 data_set.drop(columns="Name", axis=1, inplace=True)
 print(data_set.shape)
 
-# Replacing embarked columns with the mode
-data_set.Embarked.fillna('S', inplace=True)
+# Replacing null embarked columns with the mode
+data_set.Embarked.fillna(data_set["Embarked"].mode()[0], inplace=True)
 
 # Changing values of embarked to numbers; 0 for S, 1 for C, 2 for Q
 data_set["Embarked"] = data_set["Embarked"].map({'S': 0, 'C': 1, 'Q': '2'})
-# print(data_set.head())
+
+# Replacing null fare columns with mean
+data_set.Fare.fillna(data_set["Fare"].mean(), inplace=True)
+
+# Converting status to numerical values
+status_dummies = pd.get_dummies(data_set["Status"], prefix="Status")
+data_set = pd.concat([data_set, status_dummies], axis=1)
+data_set.drop(columns="Status", axis=1, inplace=True)
+
+# Dropping other irrelevant columns
+data_set.drop(columns=["SibSp", "Parch", "Ticket"], axis=1, inplace=True)
 
 # Checking for null values in train set
-print(data_set.iloc[:891].isnull().sum())
+# print(data_set.isnull().sum())
+# print(data_set.head())
 
+#Modeling the data
+target_class = pd.read_csv('./data/train.csv',
+                           usecols=['Survived'])['Survived'].values
+train_set = data_set.iloc[:891]
+test_set = data_set.iloc[891:]
+
+logisitic = LogisticRegression(max_iter=500).fit(train_set, target_class)
+
+# training data prediction
+prediction = logisitic.predict(train_set)
+
+accuracy = accuracy_score(target_class, prediction)
+print('Accuracy score of training data : ', accuracy)
+
+# predict test data
+test_predict = logisitic.predict(test_set)
+print(test_predict)
