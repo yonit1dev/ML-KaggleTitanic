@@ -1,11 +1,10 @@
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # Function that will be useful later
-
-
 def calculate_median(median_frame, observation):
     selection = (
         (median_frame['Status'] == observation['Status']) &
@@ -18,7 +17,7 @@ def combine_train_test(train_frame, test):
 
     train_frame.drop(columns="Survived", axis=1, inplace=True)
 
-    combined_data = train_frame.append(test_data)
+    combined_data = pd.concat([train_frame, test_data])
     combined_data.reset_index(inplace=True)
     combined_data.drop(
         columns=['PassengerId', 'index', 'Cabin'], axis=1, inplace=True)
@@ -66,7 +65,7 @@ data_set["Status"] = data_set.Status.map(titles)
 # Processing Age
 # Filling null values with their median values by sex and status category
 train_group = data_set.iloc[:891].groupby(['Status', 'Sex'])
-train_median = train_group.median().reset_index()[['Sex', 'Status', 'Age']]
+train_median = train_group.median(numeric_only=True).reset_index()[['Sex', 'Status', 'Age']]
 
 # based on the above observation and computation, fill the age column with the median value if null
 data_set["Age"] = data_set.apply(lambda row: calculate_median(median_frame=train_median,
@@ -96,9 +95,6 @@ data_set.drop(columns="Status", axis=1, inplace=True)
 # Dropping other irrelevant columns
 data_set.drop(columns=["SibSp", "Parch", "Ticket"], axis=1, inplace=True)
 
-# Checking for null values in train set
-# print(data_set.isnull().sum())
-# print(data_set.head())
 
 #Modeling the data
 target_class = pd.read_csv('./data/train.csv',
@@ -106,13 +102,23 @@ target_class = pd.read_csv('./data/train.csv',
 train_set = data_set.iloc[:891]
 test_set = data_set.iloc[891:]
 
-logisitic = LogisticRegression(max_iter=500).fit(train_set, target_class)
+# Selecting the test set to be 20%
+x_train = train_set[:713]
+x_test = train_set[713:]
+target_train = target_class[:713]
+target_test = target_class[713:]
+
+logisitic = LogisticRegression(max_iter=500).fit(x_train, target_train)
 
 # training data prediction
-prediction = logisitic.predict(train_set)
+prediction = logisitic.predict(x_train)
 
-accuracy = accuracy_score(target_class, prediction)
-print('Accuracy score of training data : ', accuracy)
+train_accuracy = accuracy_score(target_train, prediction)
+print('Accuracy of training data : ', train_accuracy)
+
+test_prediction = logisitic.predict(x_test)
+test_accuracy = accuracy_score(target_test, test_prediction)
+print('Accuracy of test data : ', test_accuracy)
 
 # predict test data
 test_predict = logisitic.predict(test_set)
