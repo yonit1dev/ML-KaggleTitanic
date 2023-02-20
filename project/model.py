@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # Function that will be useful later
@@ -108,18 +106,32 @@ x_test = train_set[713:]
 target_train = target_class[:713]
 target_test = target_class[713:]
 
+from sklearn.linear_model import LogisticRegression
 logisitic = LogisticRegression(max_iter=500).fit(x_train, target_train)
 
 # training data prediction
 prediction = logisitic.predict(x_train)
 
 train_accuracy = accuracy_score(target_train, prediction)
-print('Accuracy of training data : ', train_accuracy)
+print('Accuracy of training data using Logistic Regression: ', round(train_accuracy * 100, 3))
 
 test_prediction = logisitic.predict(x_test)
 test_accuracy = accuracy_score(target_test, test_prediction)
-print('Accuracy of test data : ', test_accuracy)
+print('Accuracy of test data using Logistic Regression: ', test_accuracy)
 
 # predict test data
 test_predict = logisitic.predict(test_set)
 print(test_predict)
+
+
+# Naive bayes
+from sklearn.naive_bayes import GaussianNB
+classifier = GaussianNB().fit(x_train, target_train)
+prediction = classifier.predict(x_train)
+
+train_accuracy = accuracy_score(target_train, prediction)
+print('Accuracy of training data using Naive Bayes: ', round(train_accuracy * 100, 3))
+
+test_prediction = classifier.predict(x_test)
+test_accuracy = accuracy_score(target_test, test_prediction)
+print('Accuracy of test data using Naive Bayes: ', test_accuracy)
