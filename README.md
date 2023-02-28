@@ -1,13 +1,12 @@
-# ML-Training
+# Kaggle Titanic Problem
 
-### Repository containing experiments and trials I did on machine learning concepts
-- ML Fundamentals.
-- ML Example Models:
-  - Classification Models.
-  - Regression Models.
-  - Clustering Models.
+My attempt to the Kaggle Titanic Survival Problem.
+Dataset obtained from [**Kaggle**](kaggle.com).
 
-### To run the examples:
+Has some interesting data visualization graphs.
+Needs more data refinement.
+
+### To run:
 - Have python version 3.9 or up.
 - Have pip installed.
 - Install pandas, numpy and scikit-learn packages.
